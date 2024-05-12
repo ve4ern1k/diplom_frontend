@@ -112,42 +112,46 @@
                         Подробная информация
                     </p>
                     <div style="display: flex; flex-direction: column; width: 100%; height: 100%;">
-                        <div style="width: 100%; height: 100%; max-height: 430.1px; padding: 0px 16px; display: flex !important; flex-direction: column; flex-wrap: wrap !important; text-align: left !important;">
-                            <div style="width: auto; margin: 10px 15px;">
+                        <div style="width: 100%; height: 100%; padding: 0px 16px; display: flex !important; flex-direction: column; text-align: left !important;">
+                            <div style="width: 50%; margin: 10px 15px;">
                                 Возраст: {{ userData[0].age }}
                             </div>
-                            <div style="width: auto; margin: 10px 15px;">
+                            <div style="width: 50%; margin: 10px 15px;">
                                 Дата рождения: {{ userData[0].birthday }}
                             </div>
-                            <div style="width: auto; margin: 10px 15px;">
+                            <div style="width: 50%; margin: 10px 15px;">
                                 Пол: {{ userData[0].sex }}
                             </div>
-                            <div style="width: auto; margin: 10px 15px;">
+                            <div style="width: 50%; margin: 10px 15px;">
                                 Образование: {{ userData[0].quality }}
                             </div>
-                            <div style="width: auto; margin: 10px 15px;">
+                            <div style="width: 50%; margin: 10px 15px;">
                                 Должность: {{ userData[0].post }}
                             </div>
-                            <div style="width: auto; margin: 10px 15px;">
+                            <div style="width: 50%; margin: 10px 15px;">
                                 Опыт работы: {{ userData[0].experience }} лет
                             </div>
-                            <div style="width: auto; margin: 10px 15px;">
+                            <div style="width: 50%; margin: 10px 15px;">
                                 З/П: {{ userData[0].salary }} ₽
                             </div>
-                            <div style="width: auto; margin: 10px 15px;">
+                            <div style="width: 50%; margin: 10px 15px;">
                                 E-mail: {{ userData[0].email }}
                             </div>
-                            <div style="width: auto; margin: 10px 15px;">
+                            <div style="width: 50%; margin: 10px 15px;">
                                 Телефон: {{ userData[0].phone }}
                             </div>
-                            <v-expansion-panels v-if="userData[0].userGroups" v-model="panel" style="width: auto; margin: 10px 15px;">
-                                <v-expansion-panel>
-                                    <v-expansion-panel-header>Группы пользователей</v-expansion-panel-header>
-                                    <v-expansion-panel-content style="margin-top: 5px;" v-for="(oneGroup, index) in userData[0].userGroups" :key="index">
-                                        {{ oneGroup }}
-                                    </v-expansion-panel-content>
-                                </v-expansion-panel>
-                            </v-expansion-panels>
+                            <v-select
+                                v-if="userData[0].userGroups"
+                                v-model="userData[0].userGroups"
+                                :items="userData[0].userGroups"
+                                label="Группы пользователей"
+                                multiple
+                                chips
+                                outlined
+                                readonly
+                                style="width: 50%; margin: 10px 15px;"
+                            >
+                            </v-select>
                         </div>
                     </div>
                 </v-card>
@@ -178,7 +182,6 @@
                 show1: false,
                 show2: false,
                 show3: false,
-                panel: [0, 1],
                 timeout: 2000,
                 changesSuccess: false,
                 items: [
@@ -240,7 +243,7 @@
 
 .v-avatar:hover {
   opacity: 0.6;
- }
+}
 
 .show-btns {
   color: rgba(255, 255, 255, 1) !important;

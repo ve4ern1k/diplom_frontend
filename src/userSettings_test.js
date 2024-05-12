@@ -1,6 +1,6 @@
 let userSettings = {
-    startPage: "Группы сотрудников",
-    startPageRouter: "staffGroups"
+    startPage: "Публикации",
+    startPageRouter: "publications"
 }
 
 export default userSettings

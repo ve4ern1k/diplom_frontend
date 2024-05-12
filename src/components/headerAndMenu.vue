@@ -1,7 +1,7 @@
 <template>
-  <div style="display: flex; height: 100%; width: 100%; margin: 0; padding: 0">
+  <div style="display: flex; height: 100%; width: 100%; margin: 0; padding: 0;">
     <v-card style="display: flex; flex-direction: column; width: 100%; border-radius: 0px;">
-      <v-app-bar color="#163179" dark elevation="4" class="header-main">
+      <v-app-bar color="#163179" dark elevation="4" class="header-main" style="position: fixed; z-index: 2;">
         <v-app-bar-nav-icon @click="drawer = true"></v-app-bar-nav-icon>
         <v-toolbar-title>Комбинат Братскжелезобетон | {{ this.$store.state.menuSectionHeader }}</v-toolbar-title>
         <v-spacer></v-spacer>
@@ -18,6 +18,7 @@
         temporary
         dark
         class="navigation-drawer-color"
+        style="position: fixed; z-index: 3;"
       >
         <v-list class="list-partitions" nav>
           <v-list-item-group>
@@ -60,7 +61,7 @@
         </v-list>
       </v-navigation-drawer>
 
-      <div style="height: 100%; width: 100%; padding: 10px;">
+      <div style="height: 100%; width: 100%; padding: 10px; margin-top: 64px; z-index: 1;">
         <slot></slot>
       </div>
     </v-card>

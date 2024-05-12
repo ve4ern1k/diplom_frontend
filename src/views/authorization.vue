@@ -7,10 +7,15 @@
         </v-app-bar>
         
         <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
-            <div style="display: flex; flex-direction: column; align-items: center; height: 30%; width: 40%; margin: auto; padding: 2px; background: linear-gradient(30deg, #163179, #0F2254); border-radius: 20px;">
+            <div style="display: flex; flex-direction: column; align-items: center; min-width: 40%; margin: auto; padding: 2px; background: linear-gradient(30deg, #163179, #0F2254); border-radius: 20px;">
                 <p style="font-size: 1.3em; color: #FFFFFF; margin-top: 16px;">Авторизация</p>
     
-                <v-form style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; height: 100%; padding: 20px 20px; background-color: #FFFFFF; border-radius: 18px;" v-model="valid" lazy-validation>
+                <v-form
+                    style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; padding: 20px 20px; background-color: #FFFFFF; border-radius: 18px;"
+                    v-model="valid"
+                    lazy-validation
+                    @keydown.native.enter.prevent="handleEnterKey"
+                >
                     <v-text-field
                         class="text-field"
                         v-model="login"
@@ -39,7 +44,7 @@
             </div>
         </div>
 
-        <v-snackbar v-model="noUser" :timeout="2000" color="error">Пользователь не найден. Проверьте введённые данные.</v-snackbar>
+        <v-snackbar v-model="noUser" :timeout="2000" color="error">Пользователь не найден. Проверьте указанные данные.</v-snackbar>
         <v-snackbar v-model="noData" :timeout="2000" color="error">Убедитесь, что все поля заполнены.</v-snackbar>
     </div>
 </template>
@@ -82,7 +87,13 @@
                 else {
                     this.noData = true
                 }
-            }
+            },
+
+            handleEnterKey(event) {
+                if (event.key === 'Enter') {
+                    this.checkAuth();
+                }
+            },
         }
     }
 </script>

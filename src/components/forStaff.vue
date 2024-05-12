@@ -49,7 +49,7 @@
                 </template>
             </v-data-table>
         </div>
-        <v-dialog v-model="dialogUpdate">
+        <v-dialog v-model="dialogUpdate" persistent>
             <v-stepper v-model="pageDialogUpdate">
                 <v-stepper-header>
                     <v-stepper-step
@@ -255,7 +255,7 @@
                 </v-stepper-items>
             </v-stepper>
         </v-dialog>
-        <v-dialog v-model="dialogCreate">
+        <v-dialog v-model="dialogCreate" persistent>
             <v-stepper v-model="pageDialogCreate">
                 <v-stepper-header>
                     <v-stepper-step

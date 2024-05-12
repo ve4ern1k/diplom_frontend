@@ -39,7 +39,7 @@
                 </template>
             </v-data-table>
         </div>
-        <v-dialog v-model="dialogUpdate" max-width="600px">
+        <v-dialog v-model="dialogUpdate" max-width="600px" persistent>
             <v-container style="background-color: white; padding: 20px 30px;">
                 <div>
                     <v-text-field
@@ -75,7 +75,7 @@
                 </div>
             </v-container>
         </v-dialog>
-        <v-dialog v-model="dialogCreate" max-width="600px">
+        <v-dialog v-model="dialogCreate" max-width="600px" persistent>
             <v-container style="background-color: white; padding: 20px 30px;">
                 <div>
                     <v-text-field
@@ -226,8 +226,6 @@
                         this.updatingItem = this.staffGroups[i]
                     }
                 }
-
-                console.log(this.updatingItem)
 
                 this.dialogUpdate = true
             },

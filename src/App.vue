@@ -21,14 +21,31 @@ export default {
 
 <style>
 
-::-webkit-scrollbar {
-    width: 0;
-}
-
 * {
   text-decoration: none;
   font-family: "Montserrat";
   font-weight: 700;
+}
+
+/* W3C standard
+   сейчас только для Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #9E9E9E #FFFFFF;
+}
+
+/* для Chrome/Edge/Safari/YandexBrowser */
+*::-webkit-scrollbar {
+  height: 12px;
+  width: 12px;
+}
+*::-webkit-scrollbar-track {
+  background: #FFFFFF;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: #9E9E9E;
+  border-radius: 10px;
+  border: 2.5px solid #FFFFFF;
 }
 
 </style>
