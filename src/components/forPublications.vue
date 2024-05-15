@@ -764,6 +764,32 @@ export default {
 
             this.publications.push(publicationObject);
         });
+
+        // const url = `/internal/publication/edit/all`;
+        // const query = {
+        //     method: 'GET',
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //         'Authorization': store.state.tokenAuth
+        //     },
+        // };
+
+        // await fetch(url, query)
+        //     .then(async (response) => {
+        //         if (response.status !== 200) {
+        //             throw response.error;
+        //         }
+        //         else {
+        //             const jsonBody = await response.json();
+        //             categories = jsonBody.data
+
+        //             categories.map(el => {
+        //                 if (el.name === 'Декоративные изделия') {
+        //                     categoryId = el.id
+        //                 }
+        //             })
+        //         }
+        //     });
     },
 
     methods: {

@@ -6,7 +6,8 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
     auth: false,
-    menuSectionHeader: ''
+    menuSectionHeader: '',
+    authToken: ''
   },
   getters: {
   },
@@ -17,6 +18,10 @@ export default new Vuex.Store({
 
     setMenuSectionHeader (state, value) {
       state.menuSectionHeader = value
+    },
+    
+    setAuthToken (state, value) {
+      state.authToken = value
     }
   },
   actions: {

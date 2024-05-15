@@ -183,7 +183,7 @@
                                             required
                                             v-model="updatingItem.userGroups"
                                             label="Группы пользователей"
-                                            :items="['Админ', 'Модератор сайта']"
+                                            :items="userGroupsTitles"
                                             filled
                                             chips
                                             multiple
@@ -389,7 +389,7 @@
                                             required
                                             v-model="newUserUserGroups"
                                             label="Группы пользователей"
-                                            :items="['Админ', 'Модератор сайта']"
+                                            :items="userGroupsTitles"
                                             filled
                                             chips
                                             multiple
@@ -466,14 +466,11 @@
 </template>
 
 <script>
-    import userData_test from '../userData_test'
-
     export default {
         name: 'forStaff',
 
         data() {
             return {
-                userData: userData_test,
                 dataTableHeaders: [
                     { text: '', value: 'empty', sortable: false },
                     { text: 'ID', align: 'start', value: 'id' },
@@ -486,13 +483,15 @@
                 ],
                 users: [],
                 search: '',
+                userGroups: [],
+                userGroupsTitles: [],
                 dialogUpdate: false,
                 dialogCreate: false,
                 pageDialogUpdate: 1,
                 pageDialogCreate: 1,
                 updatingItem: {},
                 creatingItem: {},
-                sexCases: ['Мужчина', 'Женщина'],
+                sexCases: ['Мужской', 'Женский'],
                 newUserLastname: '',
                 newUserFirstname: '',
                 newUserMiddlename: '',
@@ -510,34 +509,125 @@
             }
         },
 
-        created() {
-            this.userData.map((oneUser) => {
-                let userObject = {}
+        async created() {
+            const url = `/internal/user/all`;
+            const query = {
+                method: 'GET',
+                headers: {
+                    'Authorization': this.$store.state.authToken
+                }
+            };
+            
+            await fetch(url, query)
+                .then(async (response) => {
+                    if (response.status !== 200) {
+                        throw response.error;
+                    }
+                    else {
+                        const jsonBody = await response.json();
+                        this.users = jsonBody.data;
+                        this.users.map(el => {
+                            el['isSelected'] = false;
+                            el['lfmnames'] = `${el.lastname} ${el.firstname} ${el.middlename}`;
+                        })
+                    }
+                });
 
-                userObject['id'] = oneUser.id
-                userObject['lfmnames'] = `${oneUser.lastname} ${oneUser.firstname} ${oneUser.middlename}`
-                userObject['post'] = oneUser.post
-                userObject['salary'] = oneUser.salary
-                userObject['experience'] = oneUser.experience
-                userObject['email'] = oneUser.email
-                userObject['phone'] = oneUser.phone
-                userObject['isSelected'] = false
-
-                this.users.push(userObject)
-            })
+            const url1 = `/internal/user_group/all`;
+            const query1 = {
+                method: 'GET',
+                headers: {
+                    'Authorization': this.$store.state.authToken
+                }
+            };
+            
+            await fetch(url1, query1)
+                .then(async (response) => {
+                    if (response.status !== 200) {
+                        throw response.error;
+                    }
+                    else {
+                        const jsonBody = await response.json();
+                        this.userGroups = jsonBody.data;
+                        this.userGroups.map(el => {
+                            this.userGroupsTitles.push(el.title);
+                        })
+                        console.log(this.userGroups)
+                    }
+                });
         },
 
         methods: {
-            openDialogUpdate(item) {
+            async openDialogUpdate(item) {
                 this.pageDialogUpdate = 1
 
-                for (let i = 0; i < this.userData.length; i++) {
-                    if (this.userData[i].id === item.id) {
-                        this.updatingItem = this.userData[i]
+                const url = `/internal/user/${item.id}`;
+                const query = {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': this.$store.state.authToken
                     }
-                }
+                };
+                
+                await fetch(url, query)
+                    .then(async (response) => {
+                        if (response.status !== 200) {
+                            throw response.error;
+                        }
+                        else {
+                            const jsonBody = await response.json();
+                            this.updatingItem = jsonBody.data;
+                            console.log(this.updatingItem)
+                        }
+                    });
 
                 this.dialogUpdate = true
+            },
+
+            async saveUpdates() {
+                this.dialogUpdate = false;
+
+                let userGroupsApi = [];
+                this.userGroups.map(el => {
+                    this.updatingItem.userGroups.map(el1 => {
+                        if (el.title === el1) {
+                            userGroupsApi.push(el.id)
+                        }
+                    })
+                })
+                this.updatingItem['userGroups'] = userGroupsApi;
+
+                const url = `/internal/user/update`;
+                const query = {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': this.$store.state.authToken,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(
+                        this.updatingItem
+                    )
+                };
+                console.log(this.updatingItem);
+                
+                await fetch(url, query)
+                    .then(async (response) => {
+                        if (response.status !== 200) {
+                            console.log('ошибка')
+                            //throw response.error;
+                        }
+                        else {
+                            const jsonBody = await response.json();
+                            console.log(jsonBody);
+                            this.changesSaved = true;
+                            this.updatingItem = {};
+                        }
+                    });
+            },
+
+            cancelUpdates() {
+                this.dialogUpdate = false
+                this.updatingItem = {}
             },
 
             openDialogCreate() {
@@ -547,17 +637,6 @@
 
             removeUsers() {
                 this.users = this.users.filter(user => !user.isSelected)
-            },
-            
-            cancelUpdates() {
-                this.dialogUpdate = false
-                this.updatingItem = {}
-            },
-
-            saveUpdates() {
-                this.dialogUpdate = false
-                this.changesSaved = true
-                this.updatingItem = {}
             },
 
             saveCreate() {

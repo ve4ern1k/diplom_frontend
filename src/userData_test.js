@@ -14,9 +14,7 @@ let userData = [
         salary: '50',
         email: 'diplom@gmail.com',
         phone: '+78005553535',
-        userGroups: ['Админ', 'Модератор сайта'],
-        login: 've4ern1k',
-        password: '123'
+        userGroups: ['Админ', 'Модератор сайта']
     },
     {
         id: 2,
@@ -33,9 +31,7 @@ let userData = [
         salary: '100000',
         email: 'diplom@gmail.com',
         phone: '+78005553535',
-        userGroups: ['Админ', 'Модератор сайта'],
-        login: 'aboba',
-        password: '86'
+        userGroups: ['Админ', 'Модератор сайта']
     },
     {
         id: 3,

@@ -50,9 +50,6 @@
 </template>
 
 <script>
-    import userData from '../userData_test.js'
-    import userSettings from '@/userSettings_test'
-
     export default {
         name: 'authorization',
         
@@ -69,16 +66,60 @@
         },
 
         methods: {
-            checkAuth() {
-                this.$store.commit('setAuth', false)
+            async checkAuth() {
+                this.$store.commit('setAuth', false);
+                let mainPage = null;
+
                 if (this.login && this.password) {
-                    userData.map(user => {
-                        if (user.login === this.login && user.password === this.password) {
-                            this.$store.commit('setAuth', true)
-                        }
-                    })
+                    const url = `/internal/user/login`;
+                    const query = {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            login: `${this.login}`,
+                            password: `${this.password}`
+                        })
+                    };
+
+                    await fetch(url, query)
+                        .then(async (response) => {
+                            if (response.status !== 200) {
+                                this.noUser = true;
+                            }
+                            else {
+                                const jsonBody = await response.json();
+                                
+                                if (!jsonBody.error) {
+                                    this.$store.commit('setAuth', true)
+                                    this.$store.commit('setAuthToken', jsonBody.data.token)
+
+                                    const url = `/internal/user/my_info`;
+                                    const query = {
+                                        method: 'GET',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Authorization': this.$store.state.authToken
+                                        }
+                                    };
+                                    
+                                    await fetch(url, query)
+                                        .then(async (response) => {
+                                            if (response.status !== 200) {
+                                                throw response.error;
+                                            }
+                                            else {
+                                                const jsonBody = await response.json();
+                                                mainPage = jsonBody.data.mainPage.slice(1);
+                                            }
+                                        });
+                                }
+                            }
+                        });
+
                     if (this.$store.state.auth) {
-                        this.$router.push({ name: `${userSettings.startPageRouter}` })
+                        this.$router.push({ name: `${mainPage}` })
                     }
                     else {
                         this.noUser = true

@@ -5,7 +5,7 @@
                 <v-card class="partition">
                     <v-hover v-slot="{ hover }">
                         <v-avatar size="120">
-                            <v-img v-if="newImg" :src="newImg">
+                            <v-img v-if="userData.img" :src="'/media/' + userData.img">
                                 <v-row class="flex-column" justify="center">
                                     <div class="align-self-center">
                                         <v-btn
@@ -46,7 +46,7 @@
                         </v-avatar>
                     </v-hover>
                     <div style="margin-top: 15px; padding: 0px 10px; font-size: 1.5em; text-align: center;">
-                        {{ userData[0].lastname }} {{ userData[0].firstname }} {{ userData[0].middlename }}
+                        {{ userData.lastname }} {{ userData.firstname }} {{ userData.middlename }}
                     </div>
                 </v-card>
             </v-col>
@@ -114,36 +114,36 @@
                     <div style="display: flex; flex-direction: column; width: 100%; height: 100%;">
                         <div style="width: 100%; height: 100%; padding: 0px 16px; display: flex !important; flex-direction: column; text-align: left !important;">
                             <div style="width: 50%; margin: 10px 15px;">
-                                Возраст: {{ userData[0].age }}
+                                Возраст: {{ userData.age }}
                             </div>
                             <div style="width: 50%; margin: 10px 15px;">
-                                Дата рождения: {{ userData[0].birthday }}
+                                Дата рождения: {{ userData.birthday }}
                             </div>
                             <div style="width: 50%; margin: 10px 15px;">
-                                Пол: {{ userData[0].sex }}
+                                Пол: {{ userData.sex }}
                             </div>
                             <div style="width: 50%; margin: 10px 15px;">
-                                Образование: {{ userData[0].quality }}
+                                Образование: {{ userData.quality }}
                             </div>
                             <div style="width: 50%; margin: 10px 15px;">
-                                Должность: {{ userData[0].post }}
+                                Должность: {{ userData.post }}
                             </div>
                             <div style="width: 50%; margin: 10px 15px;">
-                                Опыт работы: {{ userData[0].experience }} лет
+                                Опыт работы: {{ userData.experience }} лет
                             </div>
                             <div style="width: 50%; margin: 10px 15px;">
-                                З/П: {{ userData[0].salary }} ₽
+                                З/П: {{ userData.salary }} ₽
                             </div>
                             <div style="width: 50%; margin: 10px 15px;">
-                                E-mail: {{ userData[0].email }}
+                                E-mail: {{ userData.email }}
                             </div>
                             <div style="width: 50%; margin: 10px 15px;">
-                                Телефон: {{ userData[0].phone }}
+                                Телефон: {{ userData.phone }}
                             </div>
                             <v-select
-                                v-if="userData[0].userGroups"
-                                v-model="userData[0].userGroups"
-                                :items="userData[0].userGroups"
+                                v-if="userData.userGroups"
+                                v-model="userData.userGroups"
+                                :items="userData.userGroups"
                                 label="Группы пользователей"
                                 multiple
                                 chips
@@ -158,13 +158,12 @@
             </v-col>
         </v-row>
         <v-snackbar v-model="changesSuccess" :timeout="timeout" color="success">Изменения успешно сохранены.</v-snackbar>
+        <v-snackbar v-model="passwordsNotSimilar" :timeout="timeout" color="red">Пароли не совпадают.</v-snackbar>
+        <v-snackbar v-model="oldPassBad" :timeout="timeout" color="red">Введён неверный старый пароль.</v-snackbar>
     </div>
 </template>
 
 <script>
-    import userData from '../userData_test.js'
-    import userData_test from '../userData_test.js'
-    import userSettings_test from '../userSettings_test'
     import { useFileDialog } from '@vueuse/core'
 
     export default {
@@ -172,10 +171,9 @@
 
         data() {
             return {
-                userData: userData_test,
-                userSettings: userSettings_test,
-                newImg: userData[0].img,
-                select: null,
+                userData: {},
+                newImg: null,
+                select: '',
                 oldPass: '',
                 newPass: '',
                 newPassRepeat: '',
@@ -184,22 +182,97 @@
                 show3: false,
                 timeout: 2000,
                 changesSuccess: false,
+                passwordsNotSimilar: false,
+                oldPassBad: false,
                 items: [
                     { partitionMenu: 'Сотрудники', partitionMenuProps: 'staff' },
                     { partitionMenu: 'Группы сотрудников', partitionMenuProps: 'staffGroups' },
                     { partitionMenu: 'Заказы', partitionMenuProps: 'orders' },
-                    { partitionMenu: 'Публикации', partitionMenuProps: 'publications' }
+                    { partitionMenu: 'Публикации', partitionMenuProps: 'publications' },
+                    { partitionMenu: 'Личный кабинет', partitionMenuProps: 'me' }
                 ],
             }
         },
 
-        created() {
-            this.select = this.items.find(item => item.partitionMenu === this.userSettings.startPage);
+        async created() {
+            const url = `/internal/user/my_info`;
+            const query = {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': this.$store.state.authToken
+                }
+            };
+            
+            await fetch(url, query)
+                .then(async (response) => {
+                    if (response.status !== 200) {
+                        throw response.error;
+                    }
+                    else {
+                        const jsonBody = await response.json();
+
+                        this.newImg = jsonBody.img;
+                        this.userData = {
+                            age: jsonBody.data.age,
+                            birthday: jsonBody.data.birthday,
+                            sex: jsonBody.data.sex,
+                            quality: jsonBody.data.quality,
+                            post: jsonBody.data.post,
+                            experience: jsonBody.data.experience,
+                            salary: jsonBody.data.salary,
+                            email: jsonBody.data.email,
+                            phone: jsonBody.data.phone,
+                            userGroups: jsonBody.data.userGroups,
+                            lastname: jsonBody.data.lastname,
+                            firstname: jsonBody.data.firstname,
+                            middlename: jsonBody.data.middlename,
+                            mainPage: jsonBody.data.mainPage,
+                            login: jsonBody.data.login,
+                            img: jsonBody.data.img
+                        }
+                    }
+                });
+
+            const mainPageName = this.userData.mainPage.slice(1);
+            this.select = this.items.find(item => item.partitionMenuProps === mainPageName);
+            console.log(this.select)
         },
 
         methods: {
-            saveChanges() {
-                this.changesSuccess = true
+            async saveChanges() {
+                if (this.newPass === this.newPassRepeat) {
+                    const url = `/internal/user/update_my`;
+                    const query = {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': this.$store.state.authToken
+                        },
+                        body: JSON.stringify({
+                            mainPage: `/${this.select.partitionMenuProps}`,
+                            oldPassword: this.oldPass,
+                            newPassword: this.newPass
+                        })
+                    };
+                    
+                    await fetch(url, query)
+                        .then(async (response) => {
+                            if (response.status !== 200) {
+                                this.oldPassBad = true;
+                            }
+                            else {
+                                const jsonBody = await response.json();
+                                this.oldPass = '';
+                                this.newPass = '';
+                                this.newPassRepeat = '';
+                                this.changesSuccess = true;
+                            }
+                        });
+                }
+                else {
+                    this.passwordsNotSimilar = true;
+                }
             },
 
             openFileDialog() {
@@ -215,12 +288,31 @@
                     if (files.length) {
                         const reader = new FileReader()
                         reader.onload = () => {
-                            this.newImg = reader.result
+                            let formData = new FormData();
+                            formData.append("image", files[0]);
+                            this.queryImageResize(formData);
                         }
                         reader.readAsDataURL(files[0])
                     }
                 })
             },
+
+            queryImageResize(formData) {
+                const url = '/internal/user/image'
+                const query = {
+                    method: "POST",
+                    headers: { Authorization: this.$store.state.authToken },
+                    body: formData
+                }
+
+                fetch(url, query).then(async response => {
+                    const bodyJson = await response.json();
+                    this.userData.img = bodyJson.data.imageName
+
+                    // const blob = await response.blob()
+                    // this.newPlan = URL.createObjectURL(blob)
+                })
+            }
         },
     }
 </script>
