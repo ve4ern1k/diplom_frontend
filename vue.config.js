@@ -5,5 +5,6 @@ module.exports = defineConfig({
   ],
   devServer: {
     proxy: 'http://127.0.0.1:2509'
-  }
+  },
+  publicPath: process.env.NODE_ENV === 'production' ? '/admin/' : '/'
 })

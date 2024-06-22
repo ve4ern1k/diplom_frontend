@@ -1,6 +1,8 @@
 <template>
-    <div style="display: flex; width: 100%; height: 100%; flex-direction: column">
-        <div style="display: flex; flex-wrap: nowrap">
+    <div
+        style="display: flex; width: 100%; height: 100%; flex-direction: column"
+    >
+        <div class="functionsBlock">
             <v-text-field
                 solo
                 label="Поиск"
@@ -9,6 +11,7 @@
                 hide-details
                 single-line
                 style="display: flex; flex-grow: 18; margin-right: 5px"
+                :disabled="disableAll"
             ></v-text-field>
             <v-btn
                 @click="openDialogCreate"
@@ -20,6 +23,7 @@
                     height: 100%;
                     margin: 0px 5px;
                 "
+                :disabled="disableAll"
             >
                 <v-icon style="margin-right: 3px">mdi-plus</v-icon>
                 Добавить
@@ -34,6 +38,7 @@
                     height: 100%;
                     margin-left: 5px;
                 "
+                :disabled="disableAll"
             >
                 <v-icon style="margin-right: 3px">mdi-cancel</v-icon>
                 Удалить
@@ -61,7 +66,7 @@
                             v-for="(header, index) in dataTableHeaders"
                             v-if="header.value !== 'empty'"
                             :key="index"
-                            @dblclick.stop="openDialogUpdate(item)"
+                            @click.stop="openDialogUpdate(item)"
                         >
                             {{ item[header.value] }}
                         </td>
@@ -78,24 +83,19 @@
                 </template>
             </v-data-table>
         </div>
-        <v-dialog
-            v-model="dialogUpdate"
-            max-width="1200px"
-            persistent
-        >
-            <v-container style="background-color: white; padding: 30px 30px 20px; max-width: 100%;">
-                <div
-                    style="
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        width: 100%;
-                    "
-                >
-                    <p style="font-size: 1.25em">Общая информация</p>
-                    <div style="display: flex; flex-wrap: wrap">
+        <v-dialog v-model="dialogUpdate" max-width="1200px" persistent>
+            <v-container
+                style="
+                    background-color: white;
+                    padding: 30px 30px 20px;
+                    max-width: 100%;
+                "
+            >
+                <div>
+                    <p style="font-size: 1.25em; text-align: center;">Общая информация</p>
+                    <div style="display: flex; flex-wrap: wrap;">
                         <v-text-field
-                            v-model="publicationTitleUpdate"
+                            v-model="updatingItem.title"
                             label="Название"
                             required
                             class="textField"
@@ -103,7 +103,7 @@
                         >
                         </v-text-field>
                         <v-text-field
-                            v-model="publicationDateUpdate"
+                            v-model="updatingItem.date"
                             label="Дата публикации"
                             required
                             :disabled="true"
@@ -111,7 +111,7 @@
                         >
                         </v-text-field>
                         <v-text-field
-                            v-model="publicationAuthorUpdate"
+                            v-model="updatingItem.author"
                             label="Автор публикации"
                             required
                             :disabled="true"
@@ -119,7 +119,7 @@
                         >
                         </v-text-field>
                         <v-text-field
-                            v-model="publicationLastUpdatesDateUpdate"
+                            v-model="updatingItem.lastUpdatesDate"
                             label="Дата последних изменений"
                             required
                             :disabled="true"
@@ -127,7 +127,7 @@
                         >
                         </v-text-field>
                         <v-text-field
-                            v-model="publicationLastUpdatesAuthorUpdate"
+                            v-model="updatingItem.lastUpdatesAuthor"
                             label="Автор последних изменений"
                             required
                             :disabled="true"
@@ -136,7 +136,7 @@
                         </v-text-field>
                     </div>
 
-                    <p style="font-size: 1.25em; margin-top: 24px">
+                    <p style="font-size: 1.25em; margin-top: 24px; text-align: center;">
                         Изображение публикации
                     </p>
                     <div
@@ -153,15 +153,14 @@
                             style="
                                 display: flex;
                                 justify-content: center;
-                                width: 100%;
+                                width: calc(100% - 82px);
                             "
                         >
                             <v-hover v-slot="{ hover }">
                                 <v-img
-                                    v-if="newImgUpdate"
-                                    :src="newImgUpdate"
+                                    v-if="updatingItem.image"
+                                    :src="updatingItem.image"
                                     style="
-                                        max-width: 1000px;
                                         border-radius: 15px;
                                     "
                                     contain
@@ -173,8 +172,7 @@
                                         <v-icon
                                             :class="{ 'show-btns': hover }"
                                             color="rgba(255, 255, 255, 0)"
-                                            style="color: #9e9e9e; margin: 50px"
-                                            size="100"
+                                            class="fixIcons"
                                         >
                                             mdi-image-edit-outline
                                         </v-icon>
@@ -187,15 +185,14 @@
                                 >
                                     <v-icon
                                         :class="{ 'show-btns': hover }"
-                                        style="color: #9e9e9e; margin: 50px"
-                                        size="100"
+                                        class="fixIcons"
                                     >
                                         mdi-image-edit-outline
                                     </v-icon>
                                 </v-container>
                             </v-hover>
                         </div>
-                        <div style="margin-left: 4px">
+                        <div style="margin-left: 4px;">
                             <v-btn
                                 @click="removeImgUpdate"
                                 color="red"
@@ -208,7 +205,7 @@
                         </div>
                     </div>
 
-                    <p style="font-size: 1.25em; margin-top: 48px">
+                    <p style="font-size: 1.25em; margin-top: 48px; text-align: center;">
                         Подзаголовки и состав
                     </p>
                     <div
@@ -235,10 +232,11 @@
                                     style="
                                         margin-bottom: 0px !important;
                                         font-size: 1.2em;
+                                        margin-right: 4px;
+                                        text-align: center;
                                     "
                                 >
-                                    Отсутствует состав публикации. Исправьте
-                                    это, нажав на кнопку справа.
+                                    Отсутствует состав публикации. Исправьте это, нажав на кнопку справа.
                                 </p>
                             </div>
                             <draggable
@@ -253,7 +251,7 @@
                                     v-for="(section, index) in sectionsCreate"
                                     :key="index"
                                     :class="colorSection(section)"
-                                    @dblclick.stop="
+                                    @click.stop="
                                         openSectionDialog(section, index)
                                     "
                                 >
@@ -273,14 +271,7 @@
                     </div>
                 </div>
 
-                <div
-                    style="
-                        width: 100%;
-                        display: flex;
-                        flex-direction: row;
-                        margin: 25px 0px 0px;
-                    "
-                >
+                <div class="buttonsBlock">
                     <v-spacer></v-spacer>
                     <v-btn
                         color="grey"
@@ -305,19 +296,18 @@
             max-width="1200px !important"
             persistent
         >
-            <v-container style="background-color: white; padding: 30px 30px 20px; max-width: 100%;">
-                <div
-                    style="
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        width: 100%;
-                    "
-                >
-                    <p style="font-size: 1.25em">Общая информация</p>
+            <v-container
+                style="
+                    background-color: white;
+                    padding: 30px 30px 20px;
+                    max-width: 100%;
+                "
+            >
+                <div>
+                    <p style="font-size: 1.25em; text-align: center;">Общая информация</p>
                     <div style="display: flex; flex-wrap: wrap">
                         <v-text-field
-                            v-model="publicationTitle"
+                            v-model="creatingItem.title"
                             label="Название"
                             required
                             class="textField"
@@ -325,7 +315,7 @@
                         >
                         </v-text-field>
                         <v-text-field
-                            v-model="publicationDate"
+                            v-model="creatingItem.date"
                             label="Дата публикации"
                             required
                             :disabled="true"
@@ -333,7 +323,7 @@
                         >
                         </v-text-field>
                         <v-text-field
-                            v-model="publicationAuthor"
+                            v-model="creatingItem.author"
                             label="Автор публикации"
                             required
                             :disabled="true"
@@ -341,7 +331,7 @@
                         >
                         </v-text-field>
                         <v-text-field
-                            v-model="publicationLastUpdatesDate"
+                            v-model="creatingItem.lastUpdatesDate"
                             label="Дата последних изменений"
                             required
                             :disabled="true"
@@ -349,7 +339,7 @@
                         >
                         </v-text-field>
                         <v-text-field
-                            v-model="publicationLastUpdatesAuthor"
+                            v-model="creatingItem.lastUpdatesAuthor"
                             label="Автор последних изменений"
                             required
                             :disabled="true"
@@ -358,7 +348,7 @@
                         </v-text-field>
                     </div>
 
-                    <p style="font-size: 1.25em; margin-top: 24px">
+                    <p style="font-size: 1.25em; margin-top: 24px; text-align: center;">
                         Изображение публикации
                     </p>
                     <div
@@ -375,15 +365,14 @@
                             style="
                                 display: flex;
                                 justify-content: center;
-                                width: 100%;
+                                width: calc(100% - 82px);
                             "
                         >
                             <v-hover v-slot="{ hover }">
                                 <v-img
-                                    v-if="newImg"
-                                    :src="newImg"
+                                    v-if="creatingItem.image"
+                                    :src="creatingItem.image"
                                     style="
-                                        max-width: 1000px;
                                         border-radius: 15px;
                                     "
                                     contain
@@ -395,8 +384,7 @@
                                         <v-icon
                                             :class="{ 'show-btns': hover }"
                                             color="rgba(255, 255, 255, 0)"
-                                            style="color: #9e9e9e; margin: 50px"
-                                            size="100"
+                                            class="fixIcons"
                                         >
                                             mdi-image-edit-outline
                                         </v-icon>
@@ -409,8 +397,7 @@
                                 >
                                     <v-icon
                                         :class="{ 'show-btns': hover }"
-                                        style="color: #9e9e9e; margin: 50px"
-                                        size="100"
+                                        class="fixIcons"
                                     >
                                         mdi-image-edit-outline
                                     </v-icon>
@@ -430,7 +417,7 @@
                         </div>
                     </div>
 
-                    <p style="font-size: 1.25em; margin-top: 48px">
+                    <p style="font-size: 1.25em; margin-top: 48px; text-align: center;">
                         Подзаголовки и состав
                     </p>
                     <div
@@ -457,10 +444,11 @@
                                     style="
                                         margin-bottom: 0px !important;
                                         font-size: 1.2em;
+                                        margin-right: 4px;
+                                        text-align: center;
                                     "
                                 >
-                                    Отсутствует состав публикации. Исправьте
-                                    это, нажав на кнопку справа.
+                                    Отсутствует состав публикации. Исправьте это, нажав на кнопку справа.
                                 </p>
                             </div>
                             <draggable
@@ -475,7 +463,7 @@
                                     v-for="(section, index) in sectionsCreate"
                                     :key="index"
                                     :class="colorSection(section)"
-                                    @dblclick.stop="
+                                    @click.stop="
                                         openSectionDialog(section, index)
                                     "
                                 >
@@ -495,14 +483,7 @@
                     </div>
                 </div>
 
-                <div
-                    style="
-                        width: 100%;
-                        display: flex;
-                        flex-direction: row;
-                        margin: 25px 0px 0px;
-                    "
-                >
+                <div class="buttonsBlock">
                     <v-spacer></v-spacer>
                     <v-btn
                         color="grey"
@@ -593,7 +574,7 @@
                             style="
                                 display: flex;
                                 justify-content: center;
-                                width: 100%;
+                                width: calc(100% - 82px);
                             "
                         >
                             <v-hover v-slot="{ hover }">
@@ -601,7 +582,6 @@
                                     v-if="updateSectionContentPicture"
                                     :src="updateSectionContentPicture"
                                     style="
-                                        max-width: 1000px;
                                         border-radius: 15px;
                                     "
                                     contain
@@ -613,8 +593,7 @@
                                         <v-icon
                                             :class="{ 'show-btns': hover }"
                                             color="rgba(255, 255, 255, 0)"
-                                            style="color: #9e9e9e; margin: 50px"
-                                            size="100"
+                                            class="fixIcons"
                                         >
                                             mdi-image-edit-outline
                                         </v-icon>
@@ -627,8 +606,7 @@
                                 >
                                     <v-icon
                                         :class="{ 'show-btns': hover }"
-                                        style="color: #9e9e9e; margin: 50px"
-                                        size="100"
+                                        class="fixIcons"
                                     >
                                         mdi-image-edit-outline
                                     </v-icon>
@@ -649,21 +627,13 @@
                     </div>
                 </div>
 
-                <div
-                    style="
-                        width: 100%;
-                        display: flex;
-                        flex-direction: row;
-                        flex-wrap: wrap;
-                        justify-content: space-evenly;
-                        margin: 25px 0px 0px;
-                    "
-                >
+                <div class="buttonsBlock">
                     <v-spacer></v-spacer>
                     <v-btn
                         color="red"
                         style="color: white"
                         @click="removeSection"
+                        class="sectionButton"
                     >
                         Удалить
                     </v-btn>
@@ -672,6 +642,7 @@
                         color="grey"
                         style="color: white"
                         @click="dialogSection = false"
+                        class="sectionButton"
                     >
                         Отменить
                     </v-btn>
@@ -680,6 +651,7 @@
                         color="#4CAF50"
                         style="color: white"
                         @click="saveSection"
+                        class="sectionButton"
                     >
                         Сохранить
                     </v-btn>
@@ -687,8 +659,15 @@
                 </div>
             </v-container>
         </v-dialog>
-        <v-snackbar v-model="changesSaved" timeout="2000" color="success">Изменения успешно сохранены.</v-snackbar>
-        <v-snackbar v-model="newSectionExist" timeout="2000" color="error">Сначала заполните уже созданный подзаголовок.</v-snackbar>
+        <v-snackbar v-model="changesSaved" timeout="2000" color="success"
+            >Изменения успешно сохранены.</v-snackbar
+        >
+        <v-snackbar v-model="newSectionExist" timeout="2000" color="error"
+            >Сначала заполните уже созданный подзаголовок.</v-snackbar
+        >
+        <v-snackbar v-model="snackError" timeout="2000" color="red">{{
+            snackErrorText
+        }}</v-snackbar>
     </div>
 </template>
 
@@ -723,20 +702,18 @@ export default {
             publicationIdUpdate: null,
             changesSaved: false,
             newSectionExist: false,
+            snackError: false,
+            snackErrorText: "",
             dialogCreate: false,
-            creatingItem: {},
-            publicationTitle: "",
-            publicationTitleUpdate: '',
-            publicationDate: "",
-            publicationDateUpdate: '',
-            publicationAuthor: "",
-            publicationAuthorUpdate: '',
-            publicationLastUpdatesDate: "",
-            publicationLastUpdatesDateUpdate: '',
-            publicationLastUpdatesAuthor: "",
-            publicationLastUpdatesAuthorUpdate: '',
-            newImg: "",
-            newImgUpdate: '',
+            creatingItem: {
+                title: "",
+                date: "",
+                author: "",
+                lastUpdatesDate: "",
+                lastUpdatesAuthor: "",
+                image: "",
+                structure: [],
+            },
             keyForUpdateImg: null,
             keyForUpdateImgUpdate: null,
             sectionsCreate: [],
@@ -749,47 +726,32 @@ export default {
             updateSectionContentText: "",
             updateSectionContentPicture: "",
             keyForUpdateImgSection: null,
+            disableAll: false,
         };
     },
 
-    created() {
-        this.publicationsData.map((onePublication) => {
-            let publicationObject = {};
+    async created() {
+        const url = `/internal/publication/edit/all`;
+        const query = {
+            method: "GET",
+            headers: {
+                Authorization: this.$store.state.authToken,
+            },
+        };
 
-            publicationObject["id"] = onePublication.id;
-            publicationObject["title"] = onePublication.title;
-            publicationObject["date"] = onePublication.date;
-            publicationObject["author"] = onePublication.author;
-            publicationObject["lastUpdatesDate"] = onePublication.lastUpdatesDate;
-
-            this.publications.push(publicationObject);
+        await fetch(url, query).then(async (response) => {
+            const jsonBody = await response.json();
+            if (!jsonBody.error) {
+                this.publications = jsonBody.data;
+                this.publications.map((el) => {
+                    this.$set(el, "isSelected", false);
+                });
+            } else {
+                this.snackErrorText = jsonBody.message;
+                this.snackError = true;
+                this.disableAll = true;
+            }
         });
-
-        // const url = `/internal/publication/edit/all`;
-        // const query = {
-        //     method: 'GET',
-        //     headers: {
-        //         'Content-Type': 'application/json',
-        //         'Authorization': store.state.tokenAuth
-        //     },
-        // };
-
-        // await fetch(url, query)
-        //     .then(async (response) => {
-        //         if (response.status !== 200) {
-        //             throw response.error;
-        //         }
-        //         else {
-        //             const jsonBody = await response.json();
-        //             categories = jsonBody.data
-
-        //             categories.map(el => {
-        //                 if (el.name === 'Декоративные изделия') {
-        //                     categoryId = el.id
-        //                 }
-        //             })
-        //         }
-        //     });
     },
 
     methods: {
@@ -806,11 +768,30 @@ export default {
                 if (files.length) {
                     const reader = new FileReader();
                     reader.onload = () => {
-                        this.newImg = reader.result;
+                        let formData = new FormData();
+                        formData.append("image", files[0]);
+                        this.queryImageResize(formData);
                         this.keyForUpdateImg++;
                     };
                     reader.readAsDataURL(files[0]);
                 }
+            });
+        },
+
+        queryImageResize(formData) {
+            const url = "/internal/publication/edit/image";
+            const query = {
+                method: "POST",
+                headers: { Authorization: this.$store.state.authToken },
+                body: formData,
+            };
+
+            fetch(url, query).then(async (response) => {
+                const bodyJson = await response.json();
+                this.creatingItem.image = `/media/${bodyJson.data.imageName}`;
+
+                // const blob = await response.blob()
+                // this.newPlan = URL.createObjectURL(blob)
             });
         },
 
@@ -827,11 +808,30 @@ export default {
                 if (files.length) {
                     const reader = new FileReader();
                     reader.onload = () => {
-                        this.newImgUpdate = reader.result;
+                        let formData = new FormData();
+                        formData.append("image", files[0]);
+                        this.queryImageResizeUpdate(formData);
                         this.keyForUpdateImgUpdate++;
                     };
                     reader.readAsDataURL(files[0]);
                 }
+            });
+        },
+
+        queryImageResizeUpdate(formData) {
+            const url = "/internal/publication/edit/image";
+            const query = {
+                method: "POST",
+                headers: { Authorization: this.$store.state.authToken },
+                body: formData,
+            };
+
+            fetch(url, query).then(async (response) => {
+                const bodyJson = await response.json();
+                this.updatingItem.image = `/media/${bodyJson.data.imageName}`;
+
+                // const blob = await response.blob()
+                // this.newPlan = URL.createObjectURL(blob)
             });
         },
 
@@ -848,7 +848,9 @@ export default {
                 if (files.length) {
                     const reader = new FileReader();
                     reader.onload = () => {
-                        this.updateSectionContentPicture = reader.result;
+                        let formData = new FormData();
+                        formData.append("image", files[0]);
+                        this.queryImageResizeSection(formData);
                         this.keyForUpdateImgSection++;
                     };
                     reader.readAsDataURL(files[0]);
@@ -856,115 +858,302 @@ export default {
             });
         },
 
-        removeImg() {
-            this.newImg = null;
+        queryImageResizeSection(formData) {
+            const url = "/internal/publication/edit/image";
+            const query = {
+                method: "POST",
+                headers: { Authorization: this.$store.state.authToken },
+                body: formData,
+            };
+
+            fetch(url, query).then(async (response) => {
+                const bodyJson = await response.json();
+                this.updateSectionContentPicture = `/media/${bodyJson.data.imageName}`;
+
+                // const blob = await response.blob()
+                // this.newPlan = URL.createObjectURL(blob)
+            });
         },
 
-        removeImgUpdate() {
-            this.newImgUpdate = null;
-        },
+        async openDialogCreate() {
+            let lfmnames = "";
+            const url = `/internal/user/my_info`;
+            const query = {
+                method: "GET",
+                headers: {
+                    Authorization: this.$store.state.authToken,
+                },
+            };
 
-        openDialogUpdate(item) {
-            for (let i = 0; i < this.publicationsData.length; i++) {
-                if (this.publicationsData[i].id === item.id) {
-                    this.updatingItem = this.publicationsData[i];
+            await fetch(url, query).then(async (response) => {
+                const jsonBody = await response.json();
+                if (!jsonBody.error) {
+                    lfmnames = `${jsonBody.data.lastname} ${jsonBody.data.firstname} ${jsonBody.data.middlename}`;
+                } else {
+                    this.snackErrorText = jsonBody.message;
+                    this.snackError = true;
+                    this.disableAll = true;
                 }
-            }
+            });
 
-            this.publicationIdUpdate = this.updatingItem.id;
-            this.publicationTitleUpdate = this.updatingItem.title;
-            this.publicationDateUpdate = this.updatingItem.date;
-            this.publicationAuthorUpdate = this.updatingItem.author;
-            this.publicationLastUpdatesDateUpdate = this.updatingItem.lastUpdatesDate;
-            this.publicationLastUpdatesAuthorUpdate = this.updatingItem.lastUpdatesAuthor;
-            this.newImgUpdate = this.updatingItem.picture;
-
-            this.sectionsCreate = this.updatingItem.structure;
-            this.startSectionsStructure = [...this.updatingItem.structure];
-
-            this.dialogUpdate = true;
-        },
-
-        openDialogCreate() {
             const currentDate = new Date();
-            const day = currentDate.getDate().toString().padStart(2, '0');
-            const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+            const day = currentDate.getDate().toString().padStart(2, "0");
+            const month = (currentDate.getMonth() + 1)
+                .toString()
+                .padStart(2, "0");
             const year = currentDate.getFullYear();
 
-            this.publicationDate = `${day}.${month}.${year}`;
-            this.publicationLastUpdatesDate = `${day}.${month}.${year}`;
-            this.newImg = null;
+            this.creatingItem.date = `${day}.${month}.${year}`;
+            this.creatingItem.lastUpdatesDate = `${day}.${month}.${year}`;
+            this.creatingItem.image = null;
+            this.creatingItem.author = lfmnames;
+            this.creatingItem.lastUpdatesAuthor = lfmnames;
             this.sectionsCreate = [];
             this.dialogCreate = true;
         },
 
-        removePublications() {
-            this.publications = this.publications.filter(
-                (publication) => !publication.isSelected
-            );
+        removeImg() {
+            this.creatingItem.image = null;
         },
 
-        cancelUpdates() {
-            this.publicationsData.map(el => {
-                if (el.id === this.publicationIdUpdate) {
-                    el.structure = this.startSectionsStructure;
+        async saveCreate() {
+            if (this.creatingItem.image) {
+                this.creatingItem["image"] = this.creatingItem.image.slice(
+                    7,
+                    this.creatingItem.image.length
+                );
+            }
+            this.creatingItem.structure = this.sectionsCreate;
+
+            const url = `/internal/publication/edit/create`;
+            const query = {
+                method: "POST",
+                headers: {
+                    Authorization: this.$store.state.authToken,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(this.creatingItem),
+            };
+
+            await fetch(url, query).then(async (response) => {
+                const jsonBody = await response.json();
+
+                if (!jsonBody.error) {
+                    this.dialogCreate = false;
+                    this.changesSaved = true;
+                    this.creatingItem = {};
+
+                    const url = `/internal/publication/edit/all`;
+                    const query = {
+                        method: "GET",
+                        headers: {
+                            Authorization: this.$store.state.authToken,
+                        },
+                    };
+
+                    await fetch(url, query).then(async (response) => {
+                        const jsonBody = await response.json();
+                        if (!jsonBody.error) {
+                            this.publications = jsonBody.data;
+                            this.publications.map((el) => {
+                                this.$set(el, "isSelected", false);
+                            });
+                        } else {
+                            this.snackErrorText = jsonBody.message;
+                            this.snackError = true;
+                            this.disableAll = true;
+                        }
+                    });
+                } else {
+                    this.snackErrorText = jsonBody.message;
+                    this.snackError = true;
+                    this.disableAll = true;
                 }
-            })
-
-            this.dialogUpdate = false;
-            this.updatingItem = {};
+            });
         },
 
-        saveUpdates() {
-            this.dialogUpdate = false;
-            this.changesSaved = true;
-            this.updatingItem = {};
-        },
-
-        saveCreate() {
-            this.dialogCreate = false;
-            this.changesSaved = true;
-            this.creatingItem = {};
-        },
-
-        saveSection() {
-            this.sectionsCreate[this.updateSectionIndex] = {
-                title: this.updateSectionTitle,
-                visible: this.updateSectionVisible,
-                content: {
-                    text: this.updateSectionContentText,
-                    picture: this.updateSectionContentPicture,
+        async openDialogUpdate(item) {
+            const url = `/internal/publication/edit/${item.id}`;
+            const query = {
+                method: "GET",
+                headers: {
+                    Authorization: this.$store.state.authToken,
                 },
             };
 
-            this.dialogSection = false;
-            this.changesSaved = true;
-            this.updateSection = {};
-        },
+            await fetch(url, query).then(async (response) => {
+                const jsonBody = await response.json();
 
-        addSection() {
-            let noNewSections = true;
-            this.sectionsCreate.map((el) => {
-                if (el.title === "НОВЫЙ ПОДЗАГОЛОВОК") {
-                    noNewSections = !noNewSections;
+                if (!jsonBody.error) {
+                    this.updatingItem = jsonBody.data;
+                    if (this.updatingItem.image) {
+                        this.updatingItem[
+                            "image"
+                        ] = `/media/${this.updatingItem.image}`;
+                    }
+                    this.sectionsCreate = this.updatingItem.structure;
+                    this.startSectionsStructure = [
+                        ...this.updatingItem.structure,
+                    ];
+
+                    const url = `/internal/publication/edit/all`;
+                    const query = {
+                        method: "GET",
+                        headers: {
+                            Authorization: this.$store.state.authToken,
+                        },
+                    };
+
+                    await fetch(url, query).then(async (response) => {
+                        const jsonBody = await response.json();
+                        if (!jsonBody.error) {
+                            jsonBody.data.map((el) => {
+                                if (el.id === this.updatingItem.id) {
+                                    this.updatingItem["title"] = el.title;
+                                }
+                            });
+                        } else {
+                            this.snackErrorText = jsonBody.message;
+                            this.snackError = true;
+                            this.disableAll = true;
+                        }
+                    });
+                } else {
+                    this.snackErrorText = jsonBody.message;
+                    this.snackError = true;
+                    this.disableAll = true;
                 }
             });
 
-            if (noNewSections) {
-                this.sectionsCreate.push({
-                    title: "НОВЫЙ ПОДЗАГОЛОВОК",
-                    visible: false,
-                    content: {
-                        text: "",
-                        picture: "",
-                    },
-                });
-            } else {
-                this.newSectionExist = true;
+            this.dialogUpdate = true;
+        },
+
+        removeImgUpdate() {
+            this.updatingItem.image = null;
+        },
+
+        cancelUpdates() {
+            this.dialogUpdate = false;
+            this.updatingItem = {};
+        },
+
+        async saveUpdates() {
+            if (this.updatingItem.image) {
+                this.updatingItem["image"] = this.updatingItem.image.slice(
+                    7,
+                    this.updatingItem.image.length
+                );
             }
+            this.updatingItem.structure = this.sectionsCreate;
+
+            const url = `/internal/publication/edit/update`;
+            const query = {
+                method: "POST",
+                headers: {
+                    Authorization: this.$store.state.authToken,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(this.updatingItem),
+            };
+
+            await fetch(url, query).then(async (response) => {
+                const jsonBody = await response.json();
+
+                if (!jsonBody.error) {
+                    const url = `/internal/publication/edit/all`;
+                    const query = {
+                        method: "GET",
+                        headers: {
+                            Authorization: this.$store.state.authToken,
+                        },
+                    };
+
+                    await fetch(url, query).then(async (response) => {
+                        const jsonBody = await response.json();
+                        if (!jsonBody.error) {
+                            this.publications = jsonBody.data;
+                            this.publications.map((el) => {
+                                this.$set(el, "isSelected", false);
+                            });
+                        } else {
+                            this.snackErrorText = jsonBody.message;
+                            this.snackError = true;
+                            this.disableAll = true;
+                        }
+                    });
+                } else {
+                    this.snackErrorText = jsonBody.message;
+                    this.snackError = true;
+                }
+            });
+
+            this.dialogUpdate = false;
+            this.changesSaved = true;
+            this.updatingItem = {};
+        },
+
+        async removePublications() {
+            let arr = [];
+            this.publications.map((el) => {
+                if (el.isSelected) {
+                    arr.push(el.id);
+                }
+            });
+
+            const url = `/internal/publication/edit/delete`;
+            const query = {
+                method: "DELETE",
+                headers: {
+                    Authorization: this.$store.state.authToken,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    idList: arr,
+                }),
+            };
+
+            await fetch(url, query).then(async (response) => {
+                const jsonBody = await response.json();
+
+                if (!jsonBody.error) {
+                    const url = `/internal/publication/edit/all`;
+                    const query = {
+                        method: "GET",
+                        headers: {
+                            Authorization: this.$store.state.authToken,
+                        },
+                    };
+
+                    await fetch(url, query).then(async (response) => {
+                        const jsonBody = await response.json();
+                        if (!jsonBody.error) {
+                            this.publications = jsonBody.data;
+                            this.publications.map((el) => {
+                                this.$set(el, "isSelected", false);
+                            });
+                        } else {
+                            this.snackErrorText = jsonBody.message;
+                            this.snackError = true;
+                            this.disableAll = true;
+                        }
+                    });
+                } else {
+                    this.snackErrorText = jsonBody.message;
+                    this.snackError = true;
+                }
+            });
+
+            this.publications.map((el) => {
+                arr.map((el1) => {
+                    if (el.id === el1) {
+                        el.isSelected = false;
+                    }
+                });
+            });
         },
 
         openSectionDialog(section, sectionIndex) {
+            console.log("NOW SECTION:", section, sectionIndex);
             this.updateSection = section;
             this.updateSectionIndex = sectionIndex;
             this.updateSectionTitle = null;
@@ -980,12 +1169,43 @@ export default {
             } else {
                 this.updateSectionTitle = this.updateSection.title;
             }
-            this.updateSectionVisible = this.updateSection.visible;
-            this.updateSectionContentText = this.updateSection.content.text;
-            this.updateSectionContentPicture =
-                this.updateSection.content.picture;
+            if (section.visible) {
+                this.updateSectionVisible = section.visible;
+            } else {
+                this.updateSectionVisible = null;
+            }
+            if (section.body) {
+                this.updateSectionContentText = section.body;
+            } else {
+                this.updateSectionContentText = null;
+            }
+            if (section.image) {
+                this.updateSectionContentPicture = "/media/" + section.image;
+            } else {
+                this.updateSectionContentPicture = null;
+            }
 
             this.dialogSection = true;
+        },
+
+        addSection() {
+            let noNewSections = true;
+            this.sectionsCreate.map((el) => {
+                if (el.title === "НОВЫЙ ПОДЗАГОЛОВОК") {
+                    noNewSections = !noNewSections;
+                }
+            });
+
+            if (noNewSections) {
+                this.sectionsCreate.push({
+                    title: "НОВЫЙ ПОДЗАГОЛОВОК",
+                    visible: false,
+                    body: "",
+                    image: "",
+                });
+            } else {
+                this.newSectionExist = true;
+            }
         },
 
         removeSection() {
@@ -998,19 +1218,44 @@ export default {
             this.updateSectionContentPicture = "";
         },
 
+        saveSection() {
+            if (this.updateSectionTitle) {
+                if (this.updateSectionContentPicture) {
+                    this.updateSectionContentPicture =
+                        this.updateSectionContentPicture.slice(
+                            7,
+                            this.updateSectionContentPicture.length
+                        );
+                }
+
+                this.sectionsCreate[this.updateSectionIndex] = {
+                    title: this.updateSectionTitle,
+                    visible: this.updateSectionVisible,
+                    body: this.updateSectionContentText,
+                    image: this.updateSectionContentPicture,
+                };
+
+                this.dialogSection = false;
+                this.changesSaved = true;
+                this.updateSection = {};
+            } else {
+                this.snackErrorText =
+                    "Подзаголовок обязательно должен иметь название.";
+                this.snackError = true;
+            }
+        },
+
         colorSection(section) {
-            if (section.title === 'НОВЫЙ ПОДЗАГОЛОВОК') {
-                return 'section newSection'
-            }
-            else {
+            if (section.title === "НОВЫЙ ПОДЗАГОЛОВОК") {
+                return "section newSection";
+            } else {
                 if (section.visible) {
-                    return 'section visibleSection'
-                }
-                else {
-                    return 'section notVisibleSection'
+                    return "section visibleSection";
+                } else {
+                    return "section notVisibleSection";
                 }
             }
-        }
+        },
     },
 
     computed: {
@@ -1024,7 +1269,6 @@ export default {
 </script>
 
 <style scoped>
-
 .textField {
     width: 450px;
     padding: 5px 10px;
@@ -1085,7 +1329,44 @@ export default {
 }
 
 .notVisibleSection {
-    background-color: #FE7161;
+    background-color: #fe7161;
 }
 
+.buttonsBlock {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin: 25px 0px 0px;
+    justify-content: space-evenly;
+}
+
+.fixIcons {
+    color: #9e9e9e;
+    margin: 50px;
+    font-size: 100px;
+}
+
+@media screen and (max-width: 450px) {
+    .buttonsBlock .v-btn {
+        width: 100%;
+        margin: 4px 0px !important;
+    }
+
+    .section {
+        font-size: 1em;
+    }
+
+    .fixIcons {
+        margin: 25px;
+        font-size: 50px;
+    }
+}
+
+@media screen and (max-width: 520px) {
+    .buttonsBlock .sectionButton {
+        width: 100%;
+        margin: 4px 0px !important;
+    }
+}
 </style>
